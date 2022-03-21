@@ -97,15 +97,7 @@ def convert_to_cv(y,y_max):
     y = abs((y-y_max))
     return y
 
-def check_validity_position(node,my_map):
-    # position1 = node.position
-    if not (node.x > 249 | node.y > 399) :
-        if(int(my_map[node.x,node.y,1])>127):
-            return False
-        else:
-            return True
-    else:
-        return False
+
 
 
 
@@ -121,6 +113,23 @@ class Matrix:
 #     def __init__(self):
 #         self.action_sets= [(1,0),(-1,0), (0,1), (0,-1), (1,1), (-1,1),(1,-1),(-1,-1)]
 #         self.cost = [1,1,1,1,1.4,1.4,1.4,1.4]
+
+
+
+
+
+# class hash_maps():
+#     def __init__(self):
+        # self.visited_map = np.zeros((int(250*_CONST.scale),int(400*_CONST.scale),12),dtype='uint16')
+        # self.cost_to_come_map = np.ones((int(250*_CONST.scale),int(400*_CONST.scale)),dtype=float)*1000
+        # self.cost_to_go_map = np.ones((int(250*_CONST.scale),int(400*_CONST.scale)),dtype=float)*1000
+        # self.my_map = np.zeros((np.int(250*_CONST.scale),np.int(400*_CONST.scale),3),dtype='uint8')
+
+
+
+
+
+
 
 # from a_star import *
 # import random
