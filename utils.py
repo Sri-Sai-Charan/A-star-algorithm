@@ -6,9 +6,9 @@ import cv2 as cv
 def half_planes(my_map,point1,point2,obstacle_color,upper):
     m = (point2[0]-point1[0])/(point2[1]-point1[1]+(1e-6))
     temp=np.zeros_like(my_map)
-    for y  in range(1,400):
+    for y  in range(my_map.shape[1]):
         c = point1[0] - m*point1[1]
-        for x in range(1,250):
+        for x in range(my_map.shape[0]):
             if upper :
                 if (y <= ((m*x)+c)):
                     temp[x,y]= obstacle_color
@@ -17,23 +17,39 @@ def half_planes(my_map,point1,point2,obstacle_color,upper):
                     temp[x,y]= obstacle_color
     return temp
 
-def PopulateMap(my_map,obstacle_color,tolerance=0):
+class action():
+    def __init__(self):
+        self.action_sets= [(1,0),(-1,0), (0,1), (0,-1), (1,1), (-1,1),(1,-1),(-1,-1)]
+        self.cost = [1,1,1,1,1.4,1.4,1.4,1.4]
+
+def map_thetas(i):
+    pass
+
+def PopulateMap(my_map,obstacle_color,tolerance=0,scale=2):
 
     #Circle
     circle_map = np.zeros_like(my_map)
-    for i in range(24 - tolerance, 104 + tolerance):
-        for j in range(254 - tolerance, 344 + tolerance):
-            if (i - 64) **2 + (j - 299)**2 <= (40+tolerance)**2:
+    # for i in range(24 - tolerance, 104 + tolerance):
+    #     for j in range(254 - tolerance, 344 + tolerance):
+    #         if (i - 64) **2 + (j - 299)**2 <= (40+tolerance)**2:
+    #             circle_map[i,j] = obstacle_color
+    for i in range(my_map.shape[0]):
+        for j in range(my_map.shape[1]):
+            if ((i - (64*scale)) **2 + (j - (299*scale))**2)<= ((40+tolerance)**2)*scale:
                 circle_map[i,j] = obstacle_color
 
     #Hexagon
-    hexagon_map = np.zeros_like(my_map)       
+    hexagon_map = np.zeros_like(my_map)    
+      
     hexagon_pts= np.array([[164 - tolerance*1.2 ,170 + tolerance], 
                             [199,190+tolerance*1.6],    
                             [234 +tolerance,170+tolerance], 
                             [234 +tolerance,130 -tolerance], 
                             [199,110 - tolerance*1.2], 
-                            [164 - tolerance,130 - tolerance]],float)             
+                            [164 - tolerance,130 - tolerance]],np.int32)      
+
+    hexagon_pts= hexagon_pts*scale     
+    # print(hexagon_pts)
     side1=half_planes(hexagon_map,hexagon_pts[0],hexagon_pts[1],obstacle_color,False)
     side2=half_planes(hexagon_map,hexagon_pts[1],hexagon_pts[2],obstacle_color,True)
     side2 = cv.bitwise_and(side2,side1)
@@ -51,7 +67,10 @@ def PopulateMap(my_map,obstacle_color,tolerance=0):
     other_obstacle= np.array([[34 - (tolerance*2.5) ,64 - tolerance*0.6  ], 
                                 [104 + tolerance*2,149 + (tolerance*4)], 
                                 [89 + tolerance,69 + tolerance ], 
-                                [114 + (tolerance*3),39 - (tolerance*(2))]],float)
+                                [114 + (tolerance*3),39 - (tolerance*(2))]],np.int32)
+
+    other_obstacle = other_obstacle*scale
+
     side1=half_planes(other_obstacle_map,other_obstacle[0],other_obstacle[1],obstacle_color,False)
     side2=half_planes(other_obstacle_map,other_obstacle[1],other_obstacle[3],obstacle_color,True)
     side3=half_planes(other_obstacle_map,other_obstacle[3],other_obstacle[0],obstacle_color,False)
@@ -67,16 +86,41 @@ def PopulateMap(my_map,obstacle_color,tolerance=0):
     my_map = cv.bitwise_or(my_map,circle_map)
 
     #Border
-    my_map[0:5,:]= [128,128,128]
-    my_map[:,394:400]=[128,128,128]
-    my_map[244:250,:]=[128,128,128]
-    my_map[:,0:5] = [128,128,128]
-    
+    my_map[0:tolerance*scale,:]= [128,128,128]
+    my_map[:,my_map.shape[1] - (tolerance*scale) :my_map.shape[1]]=[128,128,128]
+    my_map[my_map.shape[0]-(tolerance*scale):my_map.shape[0],:]=[128,128,128]
+    my_map[:,0:tolerance*scale] = [128,128,128]
+
     return my_map.copy()
 
 def convert_to_cv(y,y_max):
     y = abs((y-y_max))
     return y
+
+def check_validity_position(node,my_map):
+    # position1 = node.position
+    if not (node.x > 249 | node.y > 399) :
+        if(int(my_map[node.x,node.y,1])>127):
+            return False
+        else:
+            return True
+    else:
+        return False
+
+
+
+
+class Matrix: 
+
+  def __init__(self, dims, fill):    
+     self.rows = dims[0]  
+     self.cols = dims[1]   
+     self.A = [[fill] * self.cols for i in range(self.rows)]
+
+# class action():
+#     def __init__(self):
+#         self.action_sets= [(1,0),(-1,0), (0,1), (0,-1), (1,1), (-1,1),(1,-1),(-1,-1)]
+#         self.cost = [1,1,1,1,1.4,1.4,1.4,1.4]
 
 # from a_star import *
 # import random
